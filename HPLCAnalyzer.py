@@ -1,3 +1,5 @@
+#!/bin/python
+
 from optparse import OptionParser
 from scipy import integrate, signal
 import numpy
@@ -90,7 +92,7 @@ class chromatogram:
         infile.close()
         for row in data.split('\n'):
             if row != "":
-                coord = row.split(' ')
+                coord = row.split(',')
                 self.chrom[0].append(float(coord[0]))
                 self.chrom[1].append(float(coord[1]))
 
@@ -120,7 +122,7 @@ class chromatogram:
             totalarea += p.area
         areaText = "{:.1f}%".format(self.P[peak_index].area / totalarea * 100 )
         self.peak_annotations.append( self.MPLax.annotate(areaText, xy=(self.P[peak_index].time, 0.8 * self.P[peak_index].peakMaximum), xycoords="data",
-                          xytext=(self.P[peak_index].time * 1.4, self.P[peak_index].peakMaximum),
+                          xytext=(self.P[peak_index].time + 4, self.P[peak_index].peakMaximum),
                           # xytext is offset points from "xy=(0.5, 0), xycoords=an1"
                           va="top", ha="center",
                           bbox=dict(boxstyle="round4", fc="w", lw=0.5),
