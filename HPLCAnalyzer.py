@@ -67,7 +67,7 @@ class chromatogram:
             self.plotChromatogram()
 
     def plotChromatogram( self ):
-        self.font = {'family' : 'serif', 'size': 15}
+        self.font = {'family' : 'serif', 'size': 25}
         matplotlib.rc( 'font', **self.font )
         self.MPLfig = plt.figure(1)
         self.MPLax = self.MPLfig.add_subplot(111)
@@ -99,6 +99,8 @@ class chromatogram:
     def normalizeChromatogram( self ):
         self.chrom = [self.chrom[0],
                       numpy.multiply( self.chrom[1], 1/numpy.amax( self.chrom[1] ) )]
+        self.chrom = [self.chrom[0],
+                      numpy.subtract( self.chrom[1], numpy.amin( self.chrom[1] ) )]
 
     def addPeak( self, start, end, color=None ):
         if color is None:
@@ -112,6 +114,20 @@ class chromatogram:
         for i in self.peak_annotations:
             i.remove()
             self.peak_annotations.remove(i)
+
+        #Generate label for t0 = deadtime
+        if self.deadtime != 0:
+            deadtime_index = 0
+            for i in range( len( self.chrom[0] ) ):
+                if abs( self.deadtime - self.chrom[0][i] ) < abs( self.deadtime - self.chrom[0][deadtime_index] ):
+                    deadtime_index = i
+            self.peak_annotations.append( self.MPLax.annotate("t$_0$ = {:.1f}".format(self.deadtime),
+                                xy=(self.deadtime, self.chrom[1][deadtime_index]), xycoords="data",
+                              xytext=(self.deadtime, 0.2 * numpy.amax( self.chrom[1] ) + self.chrom[1][deadtime_index] ),
+                              # xytext is offset points from "xy=(0.5, 0), xycoords=an1"
+                              va="top", ha="center",
+                              arrowprops=dict(arrowstyle="]-", lw=0.8, facecolor='black')))
+
         for i in range( len(self.P) ):
             self.generateLabels( i )
 
@@ -125,10 +141,10 @@ class chromatogram:
                           xytext=(self.P[peak_index].time + 4, self.P[peak_index].peakMaximum),
                           # xytext is offset points from "xy=(0.5, 0), xycoords=an1"
                           va="top", ha="center",
-                          bbox=dict(boxstyle="round4", fc="w", lw=0.5),
-                          arrowprops=dict(arrowstyle="-|>", lw=0.5, connectionstyle="angle3,angleA=90",facecolor='black')))
+                          bbox=dict(boxstyle="round4", fc="w", lw=0.8),
+                          arrowprops=dict(arrowstyle="-|>", lw=0.8, connectionstyle="angle3,angleA=90",facecolor='black')))
 
-        self.peak_annotations.append(self.MPLax.text(self.P[peak_index].time, 1.05 * self.P[peak_index].peakMaximum,
+        self.peak_annotations.append(self.MPLax.text(self.P[peak_index].time, 0.05 + self.P[peak_index].peakMaximum,
                                                     "{:.1f}".format( self.P[peak_index].time - self.deadtime),
                                                     va="center", ha="center"))
         self.MPLfig.canvas.draw()
